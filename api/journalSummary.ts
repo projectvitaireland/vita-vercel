@@ -3,6 +3,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Only POST allowed" });
   }
@@ -14,7 +18,8 @@ export default async function handler(req, res) {
 
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const result = await model.generateContent(`Summarize this health journal entry:\n\n${entry}`);
+    const prompt = `Summarize this journal entry and reflect back emotional insights:\n"${entry}"`;
+    const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text?.() ?? "";
     res.status(200).json({ result: text.trim() });
